@@ -9,12 +9,32 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats as st
+import importlib
+
+# import our own files an reload
+import random_variables
+importlib.reload(random_variables)
 
 # inputs
 coeff = 5 # df in student, scale in exponential
-size = 10**6
 random_variable_type = 'student' # options: normal student uniform exponential chi-squared
+size = 10**6
 decimals = 5
+
+sim = random_variables.simulator(coeff, random_variable_type, size, decimals)
+sim.generate_vector()
+x = sim.vector
+
+# task 1
+# compute the RV vector
+# DONE: sim.generate_vector()
+
+# task 2
+# compute stats on the RV vector
+# including the Jarque-Bera test
+
+# task 3
+# plot
 
 # code
 str_title = random_variable_type
