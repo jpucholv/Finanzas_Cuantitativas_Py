@@ -15,41 +15,22 @@ import os
 # import our own files an reload
 import random_variables
 importlib.reload(random_variables)
+import market_data
+importlib.reload(market_data)
 
 # inputs
-ric = 'EWW'
-
-directory = r'C:\Users\OY\Documents\Python\Finanzas Cuantitativas Py\Finanzas_Cuantitativas_Py\2024_1_data'
-path = os.path.join(directory, f'{ric}.csv')
-raw_data = pd.read_csv(path)
-
-t = pd.DataFrame()
-t['date'] = pd.to_datetime(raw_data['Date'])
-t['close'] = raw_data['Close']
-t.sort_values(by='date', ascending=True)
-t['return_close'] = t['close']/t['close'].shift(1) - 1
-t = t.dropna()
-t = t.reset_index(drop=True)
-
-# inputs
-inputs = random_variables.simulation_inputs()
-inputs.rv_type = ric + ' | real time'
-inputs.size = 10**6
-inputs.decimals = 5
+directory = r'C:\Users\OY\Documents\Python\Finanzas Cuantitativas Py\Finanzas_Cuantitativas_Py\2024_1_data' # hardcoded
+ric = 'SPY'
 
 # computations
-sim = random_variables.simulator(inputs)
-sim.vector = t['return_close'].values
-sim.inputs.size = len(sim.vector)
-sim.str_title = sim.inputs.rv_type
-sim.compute_stats()
-sim.plot()
+dist = market_data.distribution(ric)
+dist.load_timeseries()
+dist.plot_timeseries()
+dist.compute_stats()
+dist.plot_histogram()
 
-plt.figure()
-t.plot(kind='line', x='date', y='close', grid=True, color='blue', label=ric,\
-       title=f'Timeseries of close price for {ric}')
-plt.show()
 
+# loop to check normality in real distributions
 rics = []
 is_normals = []
 for file_name in os.listdir(directory):
@@ -58,28 +39,16 @@ for file_name in os.listdir(directory):
     if ric == 'ReadMe':
         continue
     
-    # get dataframe
-    path = os.path.join(directory, f'{ric}.csv')
-    raw_data = pd.read_csv(path)
-    t = pd.DataFrame()
-    t['date'] = pd.to_datetime(raw_data['Date'])
-    t['close'] = raw_data['Close']
-    t.sort_values(by='date', ascending=True)
-    t['return_close'] = t['close']/t['close'].shift(1) - 1
-    t = t.dropna()
-    t = t.reset_index(drop=True)
-    
-    # computations
-    sim = random_variables.simulator(inputs)
-    sim.vector = t['return_close'].values
-    sim.inputs.size = len(sim.vector)
-    sim.str_title = sim.inputs.rv_type
-    sim.compute_stats()
+    # compute stats
+    dist = market_data.distribution(ric)
+    dist.load_timeseries()
+    dist.compute_stats()
     
     # generate lists
     rics.append(ric)
-    is_normals.append(sim.is_normal)
+    is_normals.append(dist.is_normal)
     
 df = pd.DataFrame()
 df['ric'] = rics
 df['is_normal'] = is_normals
+df = df.sort_values(by='is_normal', ascending=False)
