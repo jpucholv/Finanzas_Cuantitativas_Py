@@ -15,8 +15,8 @@ import importlib
 import market_data
 importlib.reload(market_data)
 
-benchmark = '^SPX' # x
-security = '^VIX' # 
+benchmark = 'BTC-USD' # x
+security = 'SOL-USD' # 
 
 # get timeseries of x an y
 timeseries_x = market_data.load_timeseries(benchmark)
@@ -50,4 +50,36 @@ ax2 = timeseries.plot(kind='line', x='date', y='close_y', ax=ax, grid=False,\
                       color='red', secondary_y=True, label=security)
 ax1.legend(loc=2)
 ax2.legend(loc=1)
+plt.show()
+
+# compute linear regression
+x = timeseries['return_x'].values
+y = timeseries['return_y'].values
+slope, intercept, r_value, p_value, std_err = st.linregress(x, y)
+decimals = 4
+alpha = np.round(intercept, decimals)
+beta = np.round(slope, decimals)
+p_value = np.round(p_value, decimals)
+null_hypothesis = p_value > 0.05 # p_value < 0.05 --> reject null hypothesis
+correlation = np.round(r_value, decimals) # correlation coefficent
+r_squared = np.round(r_value**2, decimals) # pct of variance of y explained by x
+predictor_linreg = intercept + slope*x
+
+# plot linear regression
+str_self = 'Linear regression | security ' + security\
+    + ' |  benchmark ' + benchmark + '\n'\
+        + 'alpha (intercept) ' + str(alpha)\
+        + ' | beta (slope) ' + str(beta) + '\n'\
+        + 'p_value ' + str(p_value)\
+        + ' |  null hypothesis ' + str(null_hypothesis) + '\n'\
+        + 'correl (r_value) ' + str(correlation)\
+        + ' | r_squared ' + str(r_squared)
+str_title = 'Scatterplot of returns' + '\n' + str_self
+plt.figure()
+plt.title(str_title)
+plt.scatter(x,y)
+plt.plot(x, predictor_linreg, color='green')
+plt.ylabel(security)
+plt.xlabel(benchmark)
+plt.grid()
 plt.show()
