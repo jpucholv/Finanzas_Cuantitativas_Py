@@ -20,7 +20,7 @@ importlib.reload(market_data)
 
 # inputs
 directory = r'C:\Users\OY\Documents\Python\Finanzas Cuantitativas Py\Finanzas_Cuantitativas_Py\2024_1_data' # hardcoded
-ric = 'SPY'
+ric = 'XLE'
 
 # computations
 dist = market_data.distribution(ric)
