@@ -11,11 +11,16 @@ import matplotlib.pyplot as plt
 import scipy.stats as st
 import importlib
 
-# import our own files an reload
 import market_data
 importlib.reload(market_data)
 
-class capm:
+def compute_beta(benchmark, security):
+    m = model(benchmark, security)
+    m.syncronize_timeseries()
+    m.compute_linear_regression()
+    return m.beta
+
+class model:
     
     def __init__(self, benchmark, security, decimals=6):
         self.benchmark = benchmark
@@ -79,3 +84,41 @@ class capm:
         plt.xlabel(self.benchmark)
         plt.grid()
         plt.show()
+        
+
+class hedger:
+    
+    def __init__(self, position_security, position_delta_usd, benchmark, hedge_securities, decimals=6):
+        self.position_security = position_security
+        self.position_delta_usd = position_delta_usd
+        self.benchmark = benchmark
+        self.hedge_securities = hedge_securities
+        self.decimals = decimals
+        self.position_beta = None
+        self.position_beta_usd = None
+        self.hedge_betas = []
+        self.hedge_weights = None
+        self.hedge_delta_usd = None
+        self.hedge_beta_usd = None
+        
+    def compute_betas(self):
+        self.position_beta = compute_beta(self.benchmark, self.position_security)
+        self.position_beta_usd = self.position_beta * self.position_delta_usd
+        for security in self.hedge_securities:
+            beta = compute_beta(self.benchmark, security)
+            self.hedge_betas.append(beta)
+            
+    def compute_hedge_weights(self):
+        # exact solution using matrix algebra
+        dimensions = len(self.hedge_securities)
+        if dimensions != 2:
+            print('------')
+            print(f'Cannot compute exact solution because dimensions: {dimensions} =/= 2')
+            return
+        deltas = np.ones([dimensions])
+        mtx = np.transpose(np.column_stack((deltas, self.hedge_betas)))
+        targets = -np.array([[self.position_delta_usd], [self.position_beta_usd]])
+        
+        self.hedge_weights = np.linalg.inv(mtx).dot(targets)
+        self.hedge_delta_usd = np.sum(self.hedge_weights)
+        self.hedge_beta_usd = np.transpose(self.hedge_betas).dot(self.hedge_weights).item()

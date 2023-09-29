@@ -12,16 +12,16 @@ import scipy.stats as st
 import importlib
 
 # import our own files an reload
-import market_data
-importlib.reload(market_data)
+import capm
+importlib.reload(capm)
 
 # inputs
-benchmark = 'XLV' # x
-security = 'PG' # y
+benchmark = '^SPX' # x
+security = 'GOOG' # y
 
 # initialize class capm
-capm = market_data.capm(benchmark, security)
-capm.syncronize_timeseries()
-capm.plot_timeseries()
-capm.compute_linear_regression()
-capm.plot_linear_regression()
+model = capm.model(benchmark, security)
+model.syncronize_timeseries()
+model.plot_timeseries()
+model.compute_linear_regression()
+model.plot_linear_regression()
